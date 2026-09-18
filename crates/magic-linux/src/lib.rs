@@ -1,6 +1,7 @@
 //! magic-linux
 pub mod action;
 pub mod axis;
+pub mod button;
 pub mod codes;
 pub mod discovery;
 pub mod gesture;
@@ -25,3 +26,7 @@ pub use axis::{AxisBounds, TouchBounds};
 pub use pointer::{PointerEvent, PointerSensitivity, PointerTracker};
 
 pub use scroll::{ScrollEvent, ScrollSensitivity, ScrollTracker};
+
+pub use button::{ButtonEvent, ButtonPhase, PhysicalButton, PhysicalButtonTracker};
+
+pub use gesture::{DoubleTapEvent, DoubleTapRecognizer, TapEvent, TapRecognizer};
