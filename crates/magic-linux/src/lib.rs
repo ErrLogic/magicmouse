@@ -1,4 +1,5 @@
 //! magic-linux
+pub mod action;
 pub mod axis;
 pub mod codes;
 pub mod discovery;
