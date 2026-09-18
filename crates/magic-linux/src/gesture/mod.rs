@@ -1,3 +1,4 @@
+pub mod arbitration;
 mod double_tap;
 mod model;
 mod movement;
@@ -28,3 +29,5 @@ pub use double_tap::{DoubleTapEvent, DoubleTapRecognizer};
 pub use one_finger_swipe::{OneFingerSwipeEvent, OneFingerSwipeRecognizer};
 
 pub use two_finger_swipe::{TwoFingerSwipeEvent, TwoFingerSwipeRecognizer};
+
+pub use arbitration::{GestureArbitrator, RecognizedGesture};

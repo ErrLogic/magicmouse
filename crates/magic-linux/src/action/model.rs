@@ -2,6 +2,7 @@
 pub enum Action {
     Pointer { dx: f32, dy: f32 },
     Scroll { dx: f32, dy: f32 },
+    ScreenZoom { delta: f32 },
     WorkspacePrevious,
     WorkspaceNext,
 }
@@ -91,5 +92,19 @@ mod tests {
                 dy: 0.300,
             }
         );
+    }
+
+    #[test]
+    fn creates_screen_zoom_action() {
+        let action = Action::ScreenZoom { delta: 0.25 };
+
+        assert_eq!(action, Action::ScreenZoom { delta: 0.25 });
+    }
+
+    #[test]
+    fn action_preserves_screen_zoom_delta() {
+        let action = Action::ScreenZoom { delta: -0.50 };
+
+        assert_eq!(action, Action::ScreenZoom { delta: -0.50 });
     }
 }

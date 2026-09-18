@@ -6,6 +6,7 @@ pub mod codes;
 pub mod discovery;
 pub mod gesture;
 pub mod input;
+pub mod modifier;
 pub mod normalize;
 pub mod pointer;
 pub mod scroll;
