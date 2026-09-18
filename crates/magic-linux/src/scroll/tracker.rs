@@ -5,7 +5,7 @@ use super::{ScrollEvent, ScrollMovement, ScrollSensitivity};
 #[derive(Debug, Clone, Copy)]
 pub struct ScrollTracker {
     sensitivity: ScrollSensitivity,
-    previous: Option<(NormalizedPoint, NormalizedPoint)>,
+    previous: Option<((i32, NormalizedPoint), (i32, NormalizedPoint))>,
 }
 
 impl ScrollTracker {
@@ -31,13 +31,25 @@ impl ScrollTracker {
             return None;
         }
 
-        let first = frame.touches[0].position;
-        let second = frame.touches[1].position;
+        let first = frame.touches[0];
+        let second = frame.touches[1];
 
-        let previous = self.previous.replace((first, second))?;
+        let first_tracking_id = first.tracking_id?;
+        let second_tracking_id = second.tracking_id?;
 
-        let previous_center = Self::centroid(previous.0, previous.1);
-        let current_center = Self::centroid(first, second);
+        let previous = self.previous.replace((
+            (first_tracking_id, first.position),
+            (second_tracking_id, second.position),
+        ))?;
+
+        let ((previous_first_id, previous_first), (previous_second_id, previous_second)) = previous;
+
+        if previous_first_id != first_tracking_id || previous_second_id != second_tracking_id {
+            return None;
+        }
+
+        let previous_center = Self::centroid(previous_first, previous_second);
+        let current_center = Self::centroid(first.position, second.position);
 
         let delta = ScrollMovement::from_points(previous_center, current_center);
         let delta = self.sensitivity.apply(delta);
@@ -154,5 +166,86 @@ mod tests {
         let result = tracker.process(&frame((0.30, 0.40), (0.50, 0.40), TouchState::Move));
 
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn tracking_id_change_does_not_emit_scroll_jump() {
+        let mut tracker = ScrollTracker::new(ScrollSensitivity::new(1.0));
+
+        let first = NormalizedTouchFrame::new(vec![
+            NormalizedTouch {
+                slot: 0,
+                tracking_id: Some(10),
+                position: NormalizedPoint { x: 0.30, y: 0.30 },
+                state: TouchState::Down,
+            },
+            NormalizedTouch {
+                slot: 1,
+                tracking_id: Some(20),
+                position: NormalizedPoint { x: 0.50, y: 0.30 },
+                state: TouchState::Down,
+            },
+        ]);
+
+        assert!(tracker.process(&first).is_none());
+
+        let movement = NormalizedTouchFrame::new(vec![
+            NormalizedTouch {
+                slot: 0,
+                tracking_id: Some(10),
+                position: NormalizedPoint { x: 0.30, y: 0.40 },
+                state: TouchState::Move,
+            },
+            NormalizedTouch {
+                slot: 1,
+                tracking_id: Some(20),
+                position: NormalizedPoint { x: 0.50, y: 0.40 },
+                state: TouchState::Move,
+            },
+        ]);
+
+        let event = tracker
+            .process(&movement)
+            .expect("expected scroll movement");
+
+        assert!((event.delta.dy - 0.10).abs() < 0.0001);
+
+        let new_fingers = NormalizedTouchFrame::new(vec![
+            NormalizedTouch {
+                slot: 0,
+                tracking_id: Some(30),
+                position: NormalizedPoint { x: 0.70, y: 0.80 },
+                state: TouchState::Down,
+            },
+            NormalizedTouch {
+                slot: 1,
+                tracking_id: Some(40),
+                position: NormalizedPoint { x: 0.90, y: 0.80 },
+                state: TouchState::Down,
+            },
+        ]);
+
+        assert!(tracker.process(&new_fingers).is_none());
+
+        let new_finger_movement = NormalizedTouchFrame::new(vec![
+            NormalizedTouch {
+                slot: 0,
+                tracking_id: Some(30),
+                position: NormalizedPoint { x: 0.70, y: 0.82 },
+                state: TouchState::Move,
+            },
+            NormalizedTouch {
+                slot: 1,
+                tracking_id: Some(40),
+                position: NormalizedPoint { x: 0.90, y: 0.82 },
+                state: TouchState::Move,
+            },
+        ]);
+
+        let event = tracker
+            .process(&new_finger_movement)
+            .expect("expected scroll movement from new fingers");
+
+        assert!((event.delta.dy - 0.02).abs() < 0.0001);
     }
 }

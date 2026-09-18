@@ -5,7 +5,7 @@ use super::{PointerEvent, PointerMovement, PointerSensitivity};
 #[derive(Debug, Clone, Copy)]
 pub struct PointerTracker {
     sensitivity: PointerSensitivity,
-    previous: Option<NormalizedPoint>,
+    previous: Option<(i32, NormalizedPoint)>,
 }
 
 impl PointerTracker {
@@ -35,7 +35,14 @@ impl PointerTracker {
 
         let current = touch.position;
 
-        let previous = self.previous.replace(current)?;
+        let tracking_id = touch.tracking_id?;
+        let previous = self.previous.replace((tracking_id, current));
+
+        let (previous_tracking_id, previous) = previous?;
+
+        if previous_tracking_id != tracking_id {
+            return None;
+        }
 
         let delta = PointerMovement::from_points(previous, current);
         let delta = self.sensitivity.apply(delta);
@@ -53,6 +60,7 @@ impl PointerTracker {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::normalize::{NormalizedTouch, NormalizedTouchFrame};
     use crate::touch::TouchState;
 
     fn point(x: f32, y: f32) -> NormalizedPoint {
@@ -187,5 +195,54 @@ mod tests {
         let result = tracker.process(&frame(0.50, 0.50, TouchState::Move));
 
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn tracking_id_change_does_not_emit_position_jump() {
+        let mut tracker = PointerTracker::new(PointerSensitivity::new(1.0));
+
+        let first = NormalizedTouchFrame::new(vec![NormalizedTouch {
+            slot: 0,
+            tracking_id: Some(10),
+            position: NormalizedPoint { x: 0.30, y: 0.40 },
+            state: TouchState::Down,
+        }]);
+
+        assert!(tracker.process(&first).is_none());
+
+        let movement = NormalizedTouchFrame::new(vec![NormalizedTouch {
+            slot: 0,
+            tracking_id: Some(10),
+            position: NormalizedPoint { x: 0.40, y: 0.40 },
+            state: TouchState::Move,
+        }]);
+
+        let event = tracker
+            .process(&movement)
+            .expect("expected pointer movement");
+
+        assert!((event.delta.dx - 0.10).abs() < 0.0001);
+
+        let new_finger = NormalizedTouchFrame::new(vec![NormalizedTouch {
+            slot: 0,
+            tracking_id: Some(11),
+            position: NormalizedPoint { x: 0.80, y: 0.40 },
+            state: TouchState::Down,
+        }]);
+
+        assert!(tracker.process(&new_finger).is_none());
+
+        let new_finger_movement = NormalizedTouchFrame::new(vec![NormalizedTouch {
+            slot: 0,
+            tracking_id: Some(11),
+            position: NormalizedPoint { x: 0.82, y: 0.40 },
+            state: TouchState::Move,
+        }]);
+
+        let event = tracker
+            .process(&new_finger_movement)
+            .expect("expected pointer movement from new finger");
+
+        assert!((event.delta.dx - 0.02).abs() < 0.0001);
     }
 }
