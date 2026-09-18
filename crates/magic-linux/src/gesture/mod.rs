@@ -7,6 +7,7 @@ mod state;
 mod swipe;
 mod tap;
 mod threshold;
+mod two_finger_swipe;
 
 pub use model::{Direction, Gesture, GestureEvent, GesturePhase};
 
@@ -25,3 +26,5 @@ pub use tap::{TapEvent, TapRecognizer};
 pub use double_tap::{DoubleTapEvent, DoubleTapRecognizer};
 
 pub use one_finger_swipe::{OneFingerSwipeEvent, OneFingerSwipeRecognizer};
+
+pub use two_finger_swipe::{TwoFingerSwipeEvent, TwoFingerSwipeRecognizer};

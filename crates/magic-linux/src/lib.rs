@@ -31,5 +31,5 @@ pub use button::{ButtonEvent, ButtonPhase, PhysicalButton, PhysicalButtonTracker
 
 pub use gesture::{
     DoubleTapEvent, DoubleTapRecognizer, OneFingerSwipeEvent, OneFingerSwipeRecognizer, TapEvent,
-    TapRecognizer,
+    TapRecognizer, TwoFingerSwipeEvent, TwoFingerSwipeRecognizer,
 };
