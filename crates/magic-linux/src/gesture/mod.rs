@@ -1,6 +1,7 @@
 mod double_tap;
 mod model;
 mod movement;
+mod one_finger_swipe;
 mod recognizer;
 mod state;
 mod swipe;
@@ -22,3 +23,5 @@ pub use threshold::MovementThreshold;
 pub use tap::{TapEvent, TapRecognizer};
 
 pub use double_tap::{DoubleTapEvent, DoubleTapRecognizer};
+
+pub use one_finger_swipe::{OneFingerSwipeEvent, OneFingerSwipeRecognizer};

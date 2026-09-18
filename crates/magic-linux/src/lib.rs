@@ -29,4 +29,7 @@ pub use scroll::{ScrollEvent, ScrollSensitivity, ScrollTracker};
 
 pub use button::{ButtonEvent, ButtonPhase, PhysicalButton, PhysicalButtonTracker};
 
-pub use gesture::{DoubleTapEvent, DoubleTapRecognizer, TapEvent, TapRecognizer};
+pub use gesture::{
+    DoubleTapEvent, DoubleTapRecognizer, OneFingerSwipeEvent, OneFingerSwipeRecognizer, TapEvent,
+    TapRecognizer,
+};
