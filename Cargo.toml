@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/magic-core",
+    "crates/magic-linux",
+    "crates/magicd",
+    "crates/magicctl",
+]

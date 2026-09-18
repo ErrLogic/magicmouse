@@ -1,0 +1,8 @@
+[package]
+name = "magic-linux"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+udev = "0.9"
+evdev = "0.13"
